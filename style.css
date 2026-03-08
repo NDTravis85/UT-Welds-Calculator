@@ -7,7 +7,7 @@ body {
   background: #000;
   color: #fff;
   font-family: Arial, sans-serif;
-  padding-bottom: 95px;
+  padding-bottom: 110px;
 }
 
 .container {
@@ -78,7 +78,7 @@ h2 {
 
 .action-btn {
   width: 100%;
-  margin-top: 18px;
+  margin-top: 0;
   padding: 16px;
   border-radius: 14px;
   font-size: 18px;
@@ -89,6 +89,30 @@ h2 {
 .action-btn:hover,
 .nav-btn:hover {
   background: #084fb0;
+}
+
+.button-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.clear-btn {
+  width: 100%;
+  padding: 16px;
+  border-radius: 14px;
+  font-size: 18px;
+  min-height: 58px;
+  border: none;
+  cursor: pointer;
+  background: #2d2d2d;
+  color: #fff;
+  font-weight: bold;
+}
+
+.clear-btn:hover {
+  background: #222;
 }
 
 .back-btn {
@@ -157,7 +181,7 @@ input {
   background: #0d0d0d;
   border-top: 1px solid #2a2a2a;
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(6, 1fr);
   gap: 8px;
   padding: 10px 8px calc(10px + env(safe-area-inset-bottom));
   z-index: 999;
@@ -181,6 +205,12 @@ input {
   }
 }
 
+@media (max-width: 520px) {
+  .bottom-nav {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
 @media (max-width: 420px) {
   h1 {
     font-size: 26px;
@@ -193,5 +223,9 @@ input {
   .nav-btn {
     font-size: 11px;
     padding: 10px 6px;
+  }
+
+  .button-row {
+    grid-template-columns: 1fr;
   }
 }

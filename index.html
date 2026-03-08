@@ -20,6 +20,7 @@
           <button class="tool-button" onclick="showScreen('dac')">% of DAC</button>
           <button class="tool-button" onclick="showScreen('nearfield')">Near Field</button>
           <button class="tool-button" onclick="showScreen('trajectory')">Trajectory</button>
+          <button class="tool-button" onclick="showScreen('weldProgress')">Weld Progress</button>
         </div>
       </div>
     </div>
@@ -36,7 +37,10 @@
         <label for="angle">Refracted Angle (deg)</label>
         <input type="number" id="angle" step="0.1" placeholder="Example: 60" />
 
-        <button class="action-btn" onclick="handleScanDistance()">Calculate</button>
+        <div class="button-row">
+          <button class="action-btn" onclick="handleScanDistance()">Calculate</button>
+          <button class="clear-btn" onclick="clearScanDistance()">Clear</button>
+        </div>
         <div id="scanResult" class="result"></div>
 
         <div class="note">
@@ -54,7 +58,10 @@
         <label for="dbFromDAC">dB from DAC</label>
         <input type="number" id="dbFromDAC" step="0.1" placeholder="Example: +6 or -6" />
 
-        <button class="action-btn" onclick="handlePercentDAC()">Calculate</button>
+        <div class="button-row">
+          <button class="action-btn" onclick="handlePercentDAC()">Calculate</button>
+          <button class="clear-btn" onclick="clearPercentDAC()">Clear</button>
+        </div>
         <div id="dacResult" class="result"></div>
 
         <div class="note">
@@ -81,7 +88,10 @@
         <label for="wedgeThickness">Wedge Thickness (in)</label>
         <input type="number" id="wedgeThickness" step="0.001" placeholder="Example: 0.750" />
 
-        <button class="action-btn" onclick="handleNearField()">Calculate</button>
+        <div class="button-row">
+          <button class="action-btn" onclick="handleNearField()">Calculate</button>
+          <button class="clear-btn" onclick="clearNearField()">Clear</button>
+        </div>
         <div id="nearFieldResult" class="result"></div>
 
         <div class="note">
@@ -108,12 +118,43 @@
         <label for="trajExitPoint">Exit Point from Face of Wedge (in)</label>
         <input type="number" id="trajExitPoint" step="0.001" placeholder="Example: 0.625" />
 
-        <button class="action-btn" onclick="handleTrajectory()">Calculate</button>
+        <div class="button-row">
+          <button class="action-btn" onclick="handleTrajectory()">Calculate</button>
+          <button class="clear-btn" onclick="clearTrajectory()">Clear</button>
+        </div>
         <div id="trajectoryResult" class="result"></div>
 
         <div class="note">
           Assumes straight planar geometry. Reports estimated indication location as a surface
           measurement from the end of the wedge, along with leg and skip information.
+        </div>
+
+        <button class="back-btn" onclick="showScreen('home')">Back to Home</button>
+      </div>
+    </div>
+
+    <div id="weldProgress" class="screen">
+      <h1>Weld Progress</h1>
+      <div class="card">
+        <label for="weldDiameterProgress">Weld Diameter (in)</label>
+        <input type="number" id="weldDiameterProgress" step="0.001" placeholder="Example: 50.000" />
+
+        <label for="transducerWidthProgress">Transducer Width in Scan Direction (in)</label>
+        <input type="number" id="transducerWidthProgress" step="0.001" placeholder="Example: 0.500" />
+
+        <label for="scannedLengthProgress">Completed Scan Length (in)</label>
+        <input type="number" id="scannedLengthProgress" step="0.001" placeholder="Example: 30.000" />
+
+        <div class="button-row">
+          <button class="action-btn" onclick="handleWeldProgress()">Calculate</button>
+          <button class="clear-btn" onclick="clearWeldProgress()">Clear</button>
+        </div>
+        <div id="weldProgressResult" class="result"></div>
+
+        <div class="note">
+          Assumes circumferential weld travel at a maximum of 6 in/s. The tool also reports the
+          maximum indexed advance per pass using 50% overlap of the entered transducer width.
+          Time values are ideal travel times and do not include setup, coupling, or repositioning.
         </div>
 
         <button class="back-btn" onclick="showScreen('home')">Back to Home</button>
@@ -127,6 +168,7 @@
     <button id="nav-dac" class="nav-btn" onclick="showScreen('dac')">% DAC</button>
     <button id="nav-nearfield" class="nav-btn" onclick="showScreen('nearfield')">Near Field</button>
     <button id="nav-trajectory" class="nav-btn" onclick="showScreen('trajectory')">Trajectory</button>
+    <button id="nav-weldProgress" class="nav-btn" onclick="showScreen('weldProgress')">Progress</button>
   </div>
 
   <script src="app.js"></script>

@@ -19,6 +19,48 @@ function formatError(message) {
   return `<span class="error">${message}</span>`;
 }
 
+function formatSecondsToClock(totalSeconds) {
+  const roundedSeconds = Math.max(0, Math.round(totalSeconds));
+  const minutes = Math.floor(roundedSeconds / 60);
+  const seconds = roundedSeconds % 60;
+  return `${minutes} min ${seconds} sec`;
+}
+
+function clearFields(fieldIds, resultId) {
+  fieldIds.forEach(id => {
+    const field = document.getElementById(id);
+    if (field) {
+      field.value = "";
+    }
+  });
+
+  const result = document.getElementById(resultId);
+  if (result) {
+    result.innerHTML = "";
+  }
+}
+
+function clearScanDistance() {
+  clearFields(["thickness", "weldWidth", "angle"], "scanResult");
+}
+
+function clearPercentDAC() {
+  clearFields(["dbFromDAC"], "dacResult");
+}
+
+function clearNearField() {
+  clearFields(["diameter", "frequency", "velocity", "wedgeThickness"], "nearFieldResult");
+}
+
+function clearTrajectory() {
+  clearFields(["trajAngle", "trajDepth", "trajThickness", "trajExitPoint"], "trajectoryResult");
+}
+
+function clearWeldProgress() {
+  clearFields(["weldDiameterProgress", "transducerWidthProgress", "scannedLengthProgress"], "weldProgressResult");
+}
+
+
 /* -------------------- SCAN DISTANCE -------------------- */
 
 function validateScanDistanceInputs(thickness, weldWidth, angle) {
@@ -240,5 +282,74 @@ function handleTrajectory() {
     <strong>Full Skip:</strong> ${data.fullSkip.toFixed(3)} in<br>
     <strong>Previous Skip Position from Exit Point:</strong> ${data.previousSkip.toFixed(3)} in<br>
     <strong>Next Skip Position from Exit Point:</strong> ${data.nextSkip.toFixed(3)} in
+  `;
+}
+
+/* -------------------- WELD PROGRESS -------------------- */
+
+function validateWeldProgressInputs(weldDiameter, transducerWidth, completedLength) {
+  if (isNaN(weldDiameter) || isNaN(transducerWidth) || isNaN(completedLength)) {
+    return "Please enter valid values in all fields.";
+  }
+
+  if (weldDiameter <= 0 || transducerWidth <= 0 || completedLength < 0) {
+    return "Weld diameter and transducer width must be greater than 0, and completed scan length cannot be negative.";
+  }
+
+  return null;
+}
+
+function getWeldProgress(weldDiameter, transducerWidth, completedLength) {
+  const maxTravelSpeed = 6;
+  const circumference = Math.PI * weldDiameter;
+  const maxIndexStep = transducerWidth * 0.5;
+  const indexedPositions = Math.ceil(circumference / maxIndexStep);
+  const idealScanTimeSeconds = circumference / maxTravelSpeed;
+
+  const clampedCompletedLength = Math.min(completedLength, circumference);
+  const remainingLength = Math.max(circumference - clampedCompletedLength, 0);
+  const completedPercent = (clampedCompletedLength / circumference) * 100;
+  const remainingPercent = 100 - completedPercent;
+  const remainingTimeSeconds = remainingLength / maxTravelSpeed;
+
+  return {
+    maxTravelSpeed,
+    circumference,
+    maxIndexStep,
+    indexedPositions,
+    idealScanTimeSeconds,
+    clampedCompletedLength,
+    remainingLength,
+    completedPercent,
+    remainingPercent,
+    remainingTimeSeconds
+  };
+}
+
+function handleWeldProgress() {
+  const weldDiameter = parseFloat(document.getElementById("weldDiameterProgress").value);
+  const transducerWidth = parseFloat(document.getElementById("transducerWidthProgress").value);
+  const completedLength = parseFloat(document.getElementById("scannedLengthProgress").value);
+  const result = document.getElementById("weldProgressResult");
+
+  const error = validateWeldProgressInputs(weldDiameter, transducerWidth, completedLength);
+  if (error) {
+    result.innerHTML = formatError(error);
+    return;
+  }
+
+  const data = getWeldProgress(weldDiameter, transducerWidth, completedLength);
+
+  result.innerHTML = `
+    <strong>Weld Circumference:</strong> ${data.circumference.toFixed(3)} in<br>
+    <strong>Max Index Step at 50% Overlap:</strong> ${data.maxIndexStep.toFixed(3)} in<br>
+    <strong>Minimum Indexed Positions:</strong> ${data.indexedPositions}<br>
+    <strong>Ideal Scan Time at 6 in/s:</strong> ${formatSecondsToClock(data.idealScanTimeSeconds)}<br><br>
+
+    <strong>Completed Scan Length:</strong> ${data.clampedCompletedLength.toFixed(3)} in<br>
+    <strong>Completed:</strong> ${data.completedPercent.toFixed(1)}%<br>
+    <strong>Remaining Length:</strong> ${data.remainingLength.toFixed(3)} in<br>
+    <strong>Remaining:</strong> ${data.remainingPercent.toFixed(1)}%<br>
+    <strong>Estimated Remaining Time at 6 in/s:</strong> ${formatSecondsToClock(data.remainingTimeSeconds)}
   `;
 }
