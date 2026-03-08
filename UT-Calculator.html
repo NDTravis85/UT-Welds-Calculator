@@ -1,232 +1,415 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>UT Field Calculators</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>UT Field Tools</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
 
-<style>
+    body {
+      margin: 0;
+      background: #000;
+      color: #fff;
+      font-family: Arial, sans-serif;
+      padding-bottom: 90px;
+    }
 
-body{
-background:#000;
-color:#fff;
-font-family:Arial;
-margin:0;
-padding:20px;
-}
+    .container {
+      max-width: 700px;
+      margin: 0 auto;
+      padding: 18px;
+    }
 
-.container{
-max-width:600px;
-margin:auto;
-}
+    .screen {
+      display: none;
+    }
 
-h1{
-text-align:center;
-margin-bottom:30px;
-}
+    .screen.active {
+      display: block;
+    }
 
-h2{
-margin-top:0;
-}
+    h1 {
+      text-align: center;
+      margin: 10px 0 24px;
+      font-size: 30px;
+    }
 
-.screen{
-display:none;
-}
+    h2 {
+      margin-top: 0;
+      font-size: 24px;
+    }
 
-.active{
-display:block;
-}
+    .subtitle {
+      text-align: center;
+      color: #cfcfcf;
+      margin-top: -10px;
+      margin-bottom: 24px;
+      font-size: 15px;
+    }
 
-.card{
-background:#111;
-padding:20px;
-border-radius:10px;
-border:1px solid #333;
-margin-bottom:20px;
-}
+    .card {
+      background: #111;
+      border: 1px solid #2f2f2f;
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 18px;
+      box-shadow: 0 0 14px rgba(255, 255, 255, 0.04);
+    }
 
-label{
-display:block;
-margin-top:10px;
-margin-bottom:5px;
-}
+    .tool-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+    }
 
-input{
-width:100%;
-padding:12px;
-font-size:16px;
-background:#000;
-border:1px solid #444;
-color:#fff;
-border-radius:6px;
-}
+    .tool-button {
+      width: 100%;
+      padding: 18px;
+      border: none;
+      border-radius: 14px;
+      background: #0b63d8;
+      color: #fff;
+      font-size: 18px;
+      font-weight: bold;
+      cursor: pointer;
+      min-height: 64px;
+    }
 
-button{
-width:100%;
-padding:14px;
-margin-top:15px;
-font-size:16px;
-border:none;
-border-radius:8px;
-background:#0074ff;
-color:#fff;
-font-weight:bold;
-cursor:pointer;
-}
+    .tool-button:hover {
+      background: #084fb0;
+    }
 
-button:hover{
-background:#005fcc;
-}
+    label {
+      display: block;
+      margin-top: 14px;
+      margin-bottom: 6px;
+      font-weight: bold;
+      font-size: 15px;
+    }
 
-.result{
-margin-top:15px;
-padding:12px;
-border:1px solid #333;
-border-radius:8px;
-background:#000;
-}
+    input {
+      width: 100%;
+      padding: 14px;
+      border-radius: 12px;
+      border: 1px solid #444;
+      background: #000;
+      color: #fff;
+      font-size: 17px;
+    }
 
-.back{
-margin-top:20px;
-background:#444;
-}
+    .action-btn {
+      width: 100%;
+      margin-top: 18px;
+      padding: 16px;
+      border: none;
+      border-radius: 14px;
+      background: #0b63d8;
+      color: #fff;
+      font-size: 18px;
+      font-weight: bold;
+      cursor: pointer;
+      min-height: 58px;
+    }
 
-.back:hover{
-background:#333;
-}
+    .action-btn:hover {
+      background: #084fb0;
+    }
 
-</style>
+    .back-btn {
+      width: 100%;
+      margin-top: 12px;
+      padding: 14px;
+      border: none;
+      border-radius: 14px;
+      background: #2d2d2d;
+      color: #fff;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .back-btn:hover {
+      background: #222;
+    }
+
+    .result {
+      margin-top: 18px;
+      padding: 16px;
+      background: #000;
+      border: 1px solid #333;
+      border-radius: 14px;
+      line-height: 1.6;
+      font-size: 16px;
+    }
+
+    .note {
+      margin-top: 14px;
+      color: #bdbdbd;
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    .error {
+      color: #ff6b6b;
+      font-weight: bold;
+    }
+
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background: #0d0d0d;
+      border-top: 1px solid #2a2a2a;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      padding: 10px 8px calc(10px + env(safe-area-inset-bottom));
+      z-index: 999;
+    }
+
+    .nav-btn {
+      border: none;
+      border-radius: 12px;
+      background: #0b63d8;
+      color: #fff;
+      padding: 12px 8px;
+      font-size: 13px;
+      font-weight: bold;
+      cursor: pointer;
+      min-height: 54px;
+    }
+
+    .nav-btn:hover {
+      background: #084fb0;
+    }
+
+    .nav-btn.active {
+      outline: 2px solid #fff;
+      outline-offset: -2px;
+    }
+
+    @media (min-width: 700px) {
+      .tool-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @media (max-width: 420px) {
+      h1 {
+        font-size: 26px;
+      }
+
+      h2 {
+        font-size: 22px;
+      }
+
+      .nav-btn {
+        font-size: 12px;
+        padding: 10px 6px;
+      }
+    }
+  </style>
 </head>
-
 <body>
+  <div class="container">
 
-<div class="container">
+    <!-- HOME -->
+    <div id="home" class="screen active">
+      <h1>UT Field Tools</h1>
+      <div class="subtitle">Inspector-focused ultrasonic field calculators</div>
 
-<!-- HOME SCREEN -->
+      <div class="card">
+        <h2>Calculators</h2>
+        <div class="tool-grid">
+          <button class="tool-button" onclick="showScreen('scan')">Scan Distance</button>
+          <button class="tool-button" onclick="showScreen('dac')">% of DAC</button>
+          <button class="tool-button" onclick="showScreen('nearfield')">Near Field</button>
+        </div>
+      </div>
 
-<div id="home" class="screen active">
+      <div class="card">
+        <div class="note">
+          Built for quick field use with large touch targets, dark mode, and simple navigation.
+        </div>
+      </div>
+    </div>
 
-<h1>UT Field Tools</h1>
+    <!-- SCAN DISTANCE -->
+    <div id="scan" class="screen">
+      <h1>Scan Distance</h1>
 
-<div class="card">
+      <div class="card">
+        <label for="thickness">Thickness (in)</label>
+        <input type="number" id="thickness" step="0.001" placeholder="Example: 2.000" />
 
-<button onclick="showScreen('scan')">Scan Distance</button>
+        <label for="weldWidth">Weld Width (in)</label>
+        <input type="number" id="weldWidth" step="0.001" placeholder="Example: 1.000" />
 
-<button onclick="showScreen('dac')">% of DAC</button>
+        <label for="angle">Refracted Angle (deg)</label>
+        <input type="number" id="angle" step="0.1" placeholder="Example: 60" />
 
-</div>
+        <button class="action-btn" onclick="calculateScanDistance()">Calculate</button>
 
-</div>
+        <div id="scanResult" class="result"></div>
 
-<!-- SCAN DISTANCE SCREEN -->
+        <div class="note">
+          Automatically adds 0.5 in HAZ to each side of the weld and returns the minimum scan distance from weld centerline required for full opposite-side HAZ coverage.
+        </div>
 
-<div id="scan" class="screen">
+        <button class="back-btn" onclick="showScreen('home')">Back to Home</button>
+      </div>
+    </div>
 
-<h1>Scan Distance</h1>
+    <!-- % DAC -->
+    <div id="dac" class="screen">
+      <h1>% of DAC</h1>
 
-<div class="card">
+      <div class="card">
+        <label for="dbFromDAC">dB from DAC</label>
+        <input type="number" id="dbFromDAC" step="0.1" placeholder="Example: +6 or -6" />
 
-<label>Thickness (in)</label>
-<input type="number" id="thickness">
+        <button class="action-btn" onclick="calculatePercentDAC()">Calculate</button>
 
-<label>Weld Width (in)</label>
-<input type="number" id="weldWidth">
+        <div id="dacResult" class="result"></div>
 
-<label>Refracted Angle (deg)</label>
-<input type="number" id="angle">
+        <div class="note">
+          Enter the value exactly as shown on the equipment. A positive number entered on the instrument is treated as a negative exponent in the %DAC formula.
+        </div>
 
-<button onclick="calculateScanDistance()">Calculate</button>
+        <button class="back-btn" onclick="showScreen('home')">Back to Home</button>
+      </div>
+    </div>
 
-<div id="scanResult" class="result"></div>
+    <!-- NEAR FIELD -->
+    <div id="nearfield" class="screen">
+      <h1>Near Field</h1>
 
-</div>
+      <div class="card">
+        <label for="diameter">Transducer Diameter (in)</label>
+        <input type="number" id="diameter" step="0.001" placeholder="Example: 0.500" />
 
-<button class="back" onclick="showScreen('home')">Back</button>
+        <label for="frequency">Frequency (MHz)</label>
+        <input type="number" id="frequency" step="0.01" placeholder="Example: 2.25" />
 
-</div>
+        <label for="velocity">Velocity (in/µs)</label>
+        <input type="number" id="velocity" step="0.001" placeholder="Example: 0.128" />
 
-<!-- DAC SCREEN -->
+        <label for="wedgeThickness">Wedge Thickness (in)</label>
+        <input type="number" id="wedgeThickness" step="0.001" placeholder="Example: 0.750" />
 
-<div id="dac" class="screen">
+        <button class="action-btn" onclick="calculateNearField()">Calculate</button>
 
-<h1>% of DAC</h1>
+        <div id="nearFieldResult" class="result"></div>
 
-<div class="card">
+        <div class="note">
+          Uses the flat circular element approximation:<br>
+          Near Field = (D² × f) / (4V)<br>
+          with D in inches, f in MHz, and V in in/µs. Approximate focal distance beyond the wedge is shown as Near Field minus wedge thickness.
+        </div>
 
-<label>dB from DAC</label>
-<input type="number" id="dbFromDAC">
+        <button class="back-btn" onclick="showScreen('home')">Back to Home</button>
+      </div>
+    </div>
+  </div>
 
-<button onclick="calculatePercentDAC()">Calculate</button>
+  <div class="bottom-nav">
+    <button id="nav-home" class="nav-btn active" onclick="showScreen('home')">Home</button>
+    <button id="nav-scan" class="nav-btn" onclick="showScreen('scan')">Scan</button>
+    <button id="nav-dac" class="nav-btn" onclick="showScreen('dac')">% DAC</button>
+    <button id="nav-nearfield" class="nav-btn" onclick="showScreen('nearfield')">Near Field</button>
+  </div>
 
-<div id="dacResult" class="result"></div>
+  <script>
+    function showScreen(screenId) {
+      document.querySelectorAll('.screen').forEach(screen => {
+        screen.classList.remove('active');
+      });
 
-</div>
+      document.getElementById(screenId).classList.add('active');
 
-<button class="back" onclick="showScreen('home')">Back</button>
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.classList.remove('active');
+      });
 
-</div>
+      const activeNav = document.getElementById('nav-' + screenId);
+      if (activeNav) {
+        activeNav.classList.add('active');
+      }
+    }
 
-</div>
+    function calculateScanDistance() {
+      const thickness = parseFloat(document.getElementById("thickness").value);
+      const weldWidth = parseFloat(document.getElementById("weldWidth").value);
+      const angle = parseFloat(document.getElementById("angle").value);
+      const result = document.getElementById("scanResult");
 
-<script>
+      if (isNaN(thickness) || isNaN(weldWidth) || isNaN(angle)) {
+        result.innerHTML = '<span class="error">Please enter valid values in all fields.</span>';
+        return;
+      }
 
-function showScreen(screen){
+      if (thickness <= 0 || weldWidth < 0 || angle <= 0 || angle >= 90) {
+        result.innerHTML = '<span class="error">Enter a valid thickness, weld width, and refracted angle between 0 and 90 degrees.</span>';
+        return;
+      }
 
-document.querySelectorAll(".screen").forEach(s=>{
-s.classList.remove("active")
-})
+      const angleRad = angle * Math.PI / 180;
+      const targetWidth = weldWidth + 1.0;
+      const scanDistance = (thickness * Math.tan(angleRad)) + (targetWidth / 2);
+      const fullScanSpan = scanDistance * 2;
 
-document.getElementById(screen).classList.add("active")
+      result.innerHTML = `
+        <strong>Minimum Scan Distance from Weld Centerline:</strong> ${scanDistance.toFixed(3)} in<br><br>
+        <strong>Total Target Width (Weld + HAZ):</strong> ${targetWidth.toFixed(3)} in<br>
+        <strong>Full Scan Span:</strong> ${fullScanSpan.toFixed(3)} in
+      `;
+    }
 
-}
+    function calculatePercentDAC() {
+      const dbFromDAC = parseFloat(document.getElementById("dbFromDAC").value);
+      const result = document.getElementById("dacResult");
 
-function calculateScanDistance(){
+      if (isNaN(dbFromDAC)) {
+        result.innerHTML = '<span class="error">Please enter a valid dB value.</span>';
+        return;
+      }
 
-let thickness=parseFloat(document.getElementById("thickness").value)
-let weldWidth=parseFloat(document.getElementById("weldWidth").value)
-let angle=parseFloat(document.getElementById("angle").value)
+      const percentDAC = Math.pow(10, (-dbFromDAC / 20)) * 100;
 
-let result=document.getElementById("scanResult")
+      result.innerHTML = `
+        <strong>Response:</strong> ${percentDAC.toFixed(1)}% DAC
+      `;
+    }
 
-if(isNaN(thickness)||isNaN(weldWidth)||isNaN(angle)){
-result.innerHTML="Enter valid numbers"
-return
-}
+    function calculateNearField() {
+      const diameter = parseFloat(document.getElementById("diameter").value);
+      const frequency = parseFloat(document.getElementById("frequency").value);
+      const velocity = parseFloat(document.getElementById("velocity").value);
+      const wedgeThickness = parseFloat(document.getElementById("wedgeThickness").value);
+      const result = document.getElementById("nearFieldResult");
 
-let angleRad=angle*Math.PI/180
+      if (isNaN(diameter) || isNaN(frequency) || isNaN(velocity) || isNaN(wedgeThickness)) {
+        result.innerHTML = '<span class="error">Please enter valid values in all fields.</span>';
+        return;
+      }
 
-let targetWidth=weldWidth+1.0
+      if (diameter <= 0 || frequency <= 0 || velocity <= 0 || wedgeThickness < 0) {
+        result.innerHTML = '<span class="error">Diameter, frequency, and velocity must be greater than 0. Wedge thickness cannot be negative.</span>';
+        return;
+      }
 
-let scanDistance=(thickness*Math.tan(angleRad))+(targetWidth/2)
+      const nearField = (Math.pow(diameter, 2) * frequency) / (4 * velocity);
+      const focalDistance = nearField - wedgeThickness;
 
-let fullSpan=scanDistance*2
-
-result.innerHTML=
-
-"Minimum Scan Distance from Weld Centerline: <b>"+scanDistance.toFixed(3)+" in</b><br><br>"+
-"Target Width (Weld + HAZ): "+targetWidth.toFixed(3)+" in<br>"+
-"Full Scan Span: "+fullSpan.toFixed(3)+" in"
-
-}
-
-function calculatePercentDAC(){
-
-let db=parseFloat(document.getElementById("dbFromDAC").value)
-
-let result=document.getElementById("dacResult")
-
-if(isNaN(db)){
-result.innerHTML="Enter a valid dB value"
-return
-}
-
-let percent=Math.pow(10,(-db/20))*100
-
-result.innerHTML="Response: <b>"+percent.toFixed(1)+"% DAC</b>"
-
-}
-
-</script>
-
+      result.innerHTML = `
+        <strong>Near Field Length:</strong> ${nearField.toFixed(3)} in<br>
+        <strong>Approx. Focal Distance Beyond Wedge:</strong> ${focalDistance.toFixed(3)} in
+      `;
+    }
+  </script>
 </body>
 </html>
