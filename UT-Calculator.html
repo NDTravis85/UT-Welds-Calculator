@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>UT Field Calculators</title>
+  <style>
+    body {
+      background-color: #000;
+      color: #fff;
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 30px;
+      color: #fff;
+    }
+
+    .card {
+      background-color: #111;
+      border: 1px solid #333;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 25px;
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.05);
+    }
+
+    h2 {
+      margin-top: 0;
+      color: #fff;
+    }
+
+    label {
+      display: block;
+      margin-top: 12px;
+      margin-bottom: 6px;
+      font-weight: bold;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid #444;
+      background-color: #000;
+      color: #fff;
+      font-size: 16px;
+      box-sizing: border-box;
+    }
+
+    button {
+      width: 100%;
+      margin-top: 18px;
+      padding: 14px;
+      background-color: #0066cc;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #0052a3;
+    }
+
+    .result {
+      margin-top: 18px;
+      padding: 14px;
+      background-color: #000;
+      border: 1px solid #333;
+      border-radius: 8px;
+      line-height: 1.5;
+    }
+
+    .note {
+      margin-top: 10px;
+      font-size: 14px;
+      color: #bbb;
+      line-height: 1.4;
+    }
+
+    .error {
+      color: #ff6666;
+      font-weight: bold;
+    }
+
+    .small {
+      font-size: 14px;
+      color: #ccc;
+    }
+
+    @media (max-width: 480px) {
+      body {
+        padding: 12px;
+      }
+
+      .card {
+        padding: 16px;
+      }
+
+      h1 {
+        font-size: 24px;
+      }
+
+      h2 {
+        font-size: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>UT Field Calculators</h1>
+
+    <div class="card">
+      <h2>Scan Distance</h2>
+
+      <label for="thickness">Thickness (in)</label>
+      <input type="number" id="thickness" step="0.001" placeholder="Example: 2.000" />
+
+      <label for="weldWidth">Weld Width (in)</label>
+      <input type="number" id="weldWidth" step="0.001" placeholder="Example: 1.000" />
+
+      <label for="angle">Refracted Angle (deg)</label>
+      <input type="number" id="angle" step="0.1" placeholder="Example: 60" />
+
+      <button onclick="calculateScanDistance()">Calculate Scan Distance</button>
+
+      <div id="scanResult" class="result"></div>
+
+      <div class="note">
+        Assumes 0.5 in HAZ is added automatically to each side of the weld and calculates the
+        minimum scan distance from weld centerline required to obtain full coverage to the opposite-side HAZ.
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>% of DAC</h2>
+
+      <label for="dbFromDAC">dB from DAC</label>
+      <input type="number" id="dbFromDAC" step="0.1" placeholder="Example: +6 or -6" />
+
+      <button onclick="calculatePercentDAC()">Calculate % of DAC</button>
+
+      <div id="dacResult" class="result"></div>
+
+      <div class="note">
+        Enter the value exactly as shown on the equipment.<br />
+        Example: <span class="small">+6</span> means gain added above DAC and
+        <span class="small">-6</span> means gain reduced below DAC.
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function calculateScanDistance() {
+      const thickness = parseFloat(document.getElementById("thickness").value);
+      const weldWidth = parseFloat(document.getElementById("weldWidth").value);
+      const angle = parseFloat(document.getElementById("angle").value);
+      const result = document.getElementById("scanResult");
+
+      if (isNaN(thickness) || isNaN(weldWidth) || isNaN(angle)) {
+        result.innerHTML = '<span class="error">Please enter valid values in all fields.</span>';
+        return;
+      }
+
+      if (thickness <= 0 || weldWidth < 0 || angle <= 0 || angle >= 90) {
+        result.innerHTML = '<span class="error">Enter a valid thickness, weld width, and refracted angle between 0 and 90 degrees.</span>';
+        return;
+      }
+
+      const angleRad = angle * Math.PI / 180;
+      const targetWidth = weldWidth + 1.0;
+      const scanDistance = (thickness * Math.tan(angleRad)) + (targetWidth / 2);
+      const fullScanSpan = scanDistance * 2;
+
+      result.innerHTML = `
+        <strong>Minimum Scan Distance from Weld Centerline:</strong> ${scanDistance.toFixed(3)} in<br><br>
+        <strong>Total Target Width (Weld + HAZ):</strong> ${targetWidth.toFixed(3)} in<br>
+        <strong>Full Scan Span:</strong> ${fullScanSpan.toFixed(3)} in
+      `;
+    }
+
+    function calculatePercentDAC() {
+      const dbFromDAC = parseFloat(document.getElementById("dbFromDAC").value);
+      const result = document.getElementById("dacResult");
+
+      if (isNaN(dbFromDAC)) {
+        result.innerHTML = '<span class="error">Please enter a valid dB value.</span>';
+        return;
+      }
+
+      const percentDAC = Math.pow(10, (-dbFromDAC / 20)) * 100;
+
+      result.innerHTML = `
+        <strong>Response:</strong> ${percentDAC.toFixed(1)}% DAC
+      `;
+    }
+  </script>
+</body>
+</html>
