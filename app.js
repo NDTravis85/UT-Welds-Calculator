@@ -19,18 +19,11 @@ function formatError(message) {
   return `<span class="error">${message}</span>`;
 }
 
-function formatSecondsToClock(totalSeconds) {
-  const roundedSeconds = Math.max(0, Math.round(totalSeconds));
-  const minutes = Math.floor(roundedSeconds / 60);
-  const seconds = roundedSeconds % 60;
-  return `${minutes} min ${seconds} sec`;
-}
-
-function clearFields(fieldIds, resultId) {
-  fieldIds.forEach(id => {
-    const field = document.getElementById(id);
-    if (field) {
-      field.value = "";
+function clearCalculator(inputIds, resultId) {
+  inputIds.forEach(id => {
+    const element = document.getElementById(id);
+    if (element) {
+      element.value = "";
     }
   });
 
@@ -40,26 +33,31 @@ function clearFields(fieldIds, resultId) {
   }
 }
 
-function clearScanDistance() {
-  clearFields(["thickness", "weldWidth", "angle"], "scanResult");
+function formatSecondsToClock(totalSeconds) {
+  const safeSeconds = Math.max(totalSeconds, 0);
+  const hours = Math.floor(safeSeconds / 3600);
+  const minutes = Math.floor((safeSeconds % 3600) / 60);
+  const seconds = safeSeconds % 60;
+
+  if (hours > 0) {
+    return `${hours} hr ${minutes} min ${seconds.toFixed(1)} sec`;
+  }
+
+  if (minutes > 0) {
+    return `${minutes} min ${seconds.toFixed(1)} sec`;
+  }
+
+  return `${seconds.toFixed(1)} sec`;
 }
 
-function clearPercentDAC() {
-  clearFields(["dbFromDAC"], "dacResult");
-}
+function getOptionalNumberValue(id, defaultValue = 0) {
+  const rawValue = document.getElementById(id).value.trim();
+  if (rawValue === "") {
+    return defaultValue;
+  }
 
-function clearNearField() {
-  clearFields(["diameter", "frequency", "velocity", "wedgeThickness"], "nearFieldResult");
+  return parseFloat(rawValue);
 }
-
-function clearTrajectory() {
-  clearFields(["trajAngle", "trajDepth", "trajThickness", "trajExitPoint"], "trajectoryResult");
-}
-
-function clearWeldProgress() {
-  clearFields(["weldDiameterProgress", "transducerWidthProgress", "scannedLengthProgress"], "weldProgressResult");
-}
-
 
 /* -------------------- SCAN DISTANCE -------------------- */
 
@@ -285,71 +283,164 @@ function handleTrajectory() {
   `;
 }
 
-/* -------------------- WELD PROGRESS -------------------- */
+/* -------------------- WELD SCAN TIME -------------------- */
 
-function validateWeldProgressInputs(weldDiameter, transducerWidth, completedLength) {
-  if (isNaN(weldDiameter) || isNaN(transducerWidth) || isNaN(completedLength)) {
-    return "Please enter valid values in all fields.";
+function validateWeldProgressInputs(weldDiameter, weldWidth, fullScanSpan, angleBeamWidth, straightBeamWidth, scanSpeed, percentCompleted) {
+  if (isNaN(weldDiameter) || isNaN(weldWidth) || isNaN(fullScanSpan) || isNaN(angleBeamWidth) || isNaN(scanSpeed) || isNaN(percentCompleted)) {
+    return "Please enter valid values in all required fields.";
   }
 
-  if (weldDiameter <= 0 || transducerWidth <= 0 || completedLength < 0) {
-    return "Weld diameter and transducer width must be greater than 0, and completed scan length cannot be negative.";
+  if (weldDiameter <= 0 || weldWidth < 0 || fullScanSpan <= 0 || angleBeamWidth <= 0 || scanSpeed <= 0) {
+    return "Diameter, full scan span, angle beam width, and scan speed must be greater than 0. Weld width cannot be negative.";
+  }
+
+  if (!isNaN(straightBeamWidth) && straightBeamWidth < 0) {
+    return "Straight beam transducer width cannot be negative.";
+  }
+
+  if (percentCompleted < 0 || percentCompleted > 100) {
+    return "Percent completed must be between 0 and 100.";
   }
 
   return null;
 }
 
-function getWeldProgress(weldDiameter, transducerWidth, completedLength) {
-  const maxTravelSpeed = 6;
-  const circumference = Math.PI * weldDiameter;
+function getRasterScanData(passLength, indexedWidth, transducerWidth, scanSpeed) {
   const maxIndexStep = transducerWidth * 0.5;
-  const indexedPositions = Math.ceil(circumference / maxIndexStep);
-  const idealScanTimeSeconds = circumference / maxTravelSpeed;
-
-  const clampedCompletedLength = Math.min(completedLength, circumference);
-  const remainingLength = Math.max(circumference - clampedCompletedLength, 0);
-  const completedPercent = (clampedCompletedLength / circumference) * 100;
-  const remainingPercent = 100 - completedPercent;
-  const remainingTimeSeconds = remainingLength / maxTravelSpeed;
+  const indexedPositions = Math.ceil(indexedWidth / maxIndexStep);
+  const totalDistance = indexedPositions * passLength;
+  const totalTimeSeconds = totalDistance / scanSpeed;
 
   return {
-    maxTravelSpeed,
-    circumference,
     maxIndexStep,
     indexedPositions,
-    idealScanTimeSeconds,
-    clampedCompletedLength,
-    remainingLength,
-    completedPercent,
-    remainingPercent,
-    remainingTimeSeconds
+    totalDistance,
+    totalTimeSeconds
+  };
+}
+
+function getWeldProgress(weldDiameter, weldWidth, fullScanSpan, angleBeamWidth, straightBeamWidth, scanSpeed, percentCompleted) {
+  const circumference = Math.PI * weldDiameter;
+  const targetWidthWithHAZ = weldWidth + 1.0;
+  const completedFraction = percentCompleted / 100;
+  const remainingFraction = 1 - completedFraction;
+
+  const perpendicularAngleBeam = getRasterScanData(fullScanSpan, circumference, angleBeamWidth, scanSpeed);
+
+  let straightBeam = null;
+  if (!isNaN(straightBeamWidth) && straightBeamWidth > 0) {
+    straightBeam = getRasterScanData(fullScanSpan, circumference, straightBeamWidth, scanSpeed);
+  }
+
+  const parallelIndexStep = angleBeamWidth * 0.5;
+  const parallelPassesEachDirection = Math.ceil(targetWidthWithHAZ / parallelIndexStep);
+  const parallelPassesBothDirections = parallelPassesEachDirection * 2;
+  const parallelDistance = parallelPassesBothDirections * circumference;
+  const parallelTimeSeconds = parallelDistance / scanSpeed;
+
+  const totalDistance = perpendicularAngleBeam.totalDistance
+    + (straightBeam ? straightBeam.totalDistance : 0)
+    + parallelDistance;
+
+  const totalTimeSeconds = perpendicularAngleBeam.totalTimeSeconds
+    + (straightBeam ? straightBeam.totalTimeSeconds : 0)
+    + parallelTimeSeconds;
+
+  return {
+    circumference,
+    targetWidthWithHAZ,
+    scanSpeed,
+    percentCompleted,
+    remainingPercent: remainingFraction * 100,
+    perpendicularAngleBeam,
+    straightBeam,
+    parallelAngleBeam: {
+      maxIndexStep: parallelIndexStep,
+      passesEachDirection: parallelPassesEachDirection,
+      passesBothDirections: parallelPassesBothDirections,
+      totalDistance: parallelDistance,
+      totalTimeSeconds: parallelTimeSeconds
+    },
+    totals: {
+      totalDistance,
+      totalTimeSeconds,
+      remainingDistance: totalDistance * remainingFraction,
+      remainingTimeSeconds: totalTimeSeconds * remainingFraction
+    }
   };
 }
 
 function handleWeldProgress() {
   const weldDiameter = parseFloat(document.getElementById("weldDiameterProgress").value);
-  const transducerWidth = parseFloat(document.getElementById("transducerWidthProgress").value);
-  const completedLength = parseFloat(document.getElementById("scannedLengthProgress").value);
+  const weldWidth = parseFloat(document.getElementById("weldWidthProgress").value);
+  const fullScanSpan = parseFloat(document.getElementById("fullScanSpanProgress").value);
+  const angleBeamWidth = parseFloat(document.getElementById("transducerWidthProgress").value);
+  const straightBeamWidth = getOptionalNumberValue("straightBeamWidthProgress", NaN);
+  const scanSpeed = parseFloat(document.getElementById("scanSpeedProgress").value);
+  const percentCompleted = getOptionalNumberValue("percentCompletedProgress", 0);
   const result = document.getElementById("weldProgressResult");
 
-  const error = validateWeldProgressInputs(weldDiameter, transducerWidth, completedLength);
+  const error = validateWeldProgressInputs(
+    weldDiameter,
+    weldWidth,
+    fullScanSpan,
+    angleBeamWidth,
+    straightBeamWidth,
+    scanSpeed,
+    percentCompleted
+  );
+
   if (error) {
     result.innerHTML = formatError(error);
     return;
   }
 
-  const data = getWeldProgress(weldDiameter, transducerWidth, completedLength);
+  const data = getWeldProgress(
+    weldDiameter,
+    weldWidth,
+    fullScanSpan,
+    angleBeamWidth,
+    straightBeamWidth,
+    scanSpeed,
+    percentCompleted
+  );
+
+  const straightBeamHtml = data.straightBeam ? `
+    <br><strong>Straight Beam Perpendicular Scan</strong><br>
+    Index Step at 50% Overlap: ${data.straightBeam.maxIndexStep.toFixed(3)} in<br>
+    Indexed Positions Around Circumference: ${data.straightBeam.indexedPositions}<br>
+    Total Scan Distance: ${data.straightBeam.totalDistance.toFixed(3)} in<br>
+    Total Scan Time: ${formatSecondsToClock(data.straightBeam.totalTimeSeconds)}<br>
+  ` : `
+    <br><strong>Straight Beam Perpendicular Scan</strong><br>
+    Not included<br>
+  `;
 
   result.innerHTML = `
     <strong>Weld Circumference:</strong> ${data.circumference.toFixed(3)} in<br>
-    <strong>Max Index Step at 50% Overlap:</strong> ${data.maxIndexStep.toFixed(3)} in<br>
-    <strong>Minimum Indexed Positions:</strong> ${data.indexedPositions}<br>
-    <strong>Ideal Scan Time at 6 in/s:</strong> ${formatSecondsToClock(data.idealScanTimeSeconds)}<br><br>
+    <strong>Target Width for Parallel Scan (Weld + HAZ):</strong> ${data.targetWidthWithHAZ.toFixed(3)} in<br>
+    <strong>Scan Speed:</strong> ${data.scanSpeed.toFixed(3)} in/s<br>
+    <strong>Completed:</strong> ${data.percentCompleted.toFixed(1)}%<br>
+    <strong>Remaining:</strong> ${data.remainingPercent.toFixed(1)}%<br><br>
 
-    <strong>Completed Scan Length:</strong> ${data.clampedCompletedLength.toFixed(3)} in<br>
-    <strong>Completed:</strong> ${data.completedPercent.toFixed(1)}%<br>
-    <strong>Remaining Length:</strong> ${data.remainingLength.toFixed(3)} in<br>
-    <strong>Remaining:</strong> ${data.remainingPercent.toFixed(1)}%<br>
-    <strong>Estimated Remaining Time at 6 in/s:</strong> ${formatSecondsToClock(data.remainingTimeSeconds)}
+    <strong>Angle Beam Perpendicular Scan</strong><br>
+    Index Step at 50% Overlap: ${data.perpendicularAngleBeam.maxIndexStep.toFixed(3)} in<br>
+    Indexed Positions Around Circumference: ${data.perpendicularAngleBeam.indexedPositions}<br>
+    Total Scan Distance: ${data.perpendicularAngleBeam.totalDistance.toFixed(3)} in<br>
+    Total Scan Time: ${formatSecondsToClock(data.perpendicularAngleBeam.totalTimeSeconds)}<br>
+
+    ${straightBeamHtml}
+
+    <br><strong>Angle Beam Parallel Scan, Two Directions</strong><br>
+    Index Step at 50% Overlap: ${data.parallelAngleBeam.maxIndexStep.toFixed(3)} in<br>
+    Indexed Passes Each Direction Across Weld + HAZ: ${data.parallelAngleBeam.passesEachDirection}<br>
+    Total Circumferential Passes, Both Directions: ${data.parallelAngleBeam.passesBothDirections}<br>
+    Total Scan Distance: ${data.parallelAngleBeam.totalDistance.toFixed(3)} in<br>
+    Total Scan Time: ${formatSecondsToClock(data.parallelAngleBeam.totalTimeSeconds)}<br><br>
+
+    <strong>Total Scan Distance, All Included Methods:</strong> ${data.totals.totalDistance.toFixed(3)} in<br>
+    <strong>Total Scan Time, All Included Methods:</strong> ${formatSecondsToClock(data.totals.totalTimeSeconds)}<br>
+    <strong>Remaining Scan Distance:</strong> ${data.totals.remainingDistance.toFixed(3)} in<br>
+    <strong>Estimated Remaining Scan Time:</strong> ${formatSecondsToClock(data.totals.remainingTimeSeconds)}
   `;
 }

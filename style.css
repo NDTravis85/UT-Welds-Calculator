@@ -60,12 +60,22 @@ h2 {
 
 .tool-button,
 .action-btn,
+.clear-btn,
 .nav-btn {
-  background: #0b63d8;
   color: #fff;
   font-weight: bold;
   border: none;
   cursor: pointer;
+}
+
+.tool-button,
+.action-btn,
+.nav-btn {
+  background: #0b63d8;
+}
+
+.clear-btn {
+  background: #3a3a3a;
 }
 
 .tool-button {
@@ -76,9 +86,15 @@ h2 {
   min-height: 64px;
 }
 
-.action-btn {
+.button-row {
+  display: flex;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.action-btn,
+.clear-btn {
   width: 100%;
-  margin-top: 0;
   padding: 16px;
   border-radius: 14px;
   font-size: 18px;
@@ -91,28 +107,8 @@ h2 {
   background: #084fb0;
 }
 
-.button-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  margin-top: 18px;
-}
-
-.clear-btn {
-  width: 100%;
-  padding: 16px;
-  border-radius: 14px;
-  font-size: 18px;
-  min-height: 58px;
-  border: none;
-  cursor: pointer;
-  background: #2d2d2d;
-  color: #fff;
-  font-weight: bold;
-}
-
 .clear-btn:hover {
-  background: #222;
+  background: #2e2e2e;
 }
 
 .back-btn {
@@ -211,6 +207,12 @@ input {
   }
 }
 
+@media (max-width: 480px) {
+  .button-row {
+    flex-direction: column;
+  }
+}
+
 @media (max-width: 420px) {
   h1 {
     font-size: 26px;
@@ -223,9 +225,5 @@ input {
   .nav-btn {
     font-size: 11px;
     padding: 10px 6px;
-  }
-
-  .button-row {
-    grid-template-columns: 1fr;
   }
 }

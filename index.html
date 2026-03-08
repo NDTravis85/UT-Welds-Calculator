@@ -20,7 +20,7 @@
           <button class="tool-button" onclick="showScreen('dac')">% of DAC</button>
           <button class="tool-button" onclick="showScreen('nearfield')">Near Field</button>
           <button class="tool-button" onclick="showScreen('trajectory')">Trajectory</button>
-          <button class="tool-button" onclick="showScreen('weldProgress')">Weld Progress</button>
+          <button class="tool-button" onclick="showScreen('weldProgress')">Weld Scan Time</button>
         </div>
       </div>
     </div>
@@ -39,7 +39,7 @@
 
         <div class="button-row">
           <button class="action-btn" onclick="handleScanDistance()">Calculate</button>
-          <button class="clear-btn" onclick="clearScanDistance()">Clear</button>
+          <button class="clear-btn" onclick="clearCalculator(['thickness','weldWidth','angle'], 'scanResult')">Clear</button>
         </div>
         <div id="scanResult" class="result"></div>
 
@@ -60,7 +60,7 @@
 
         <div class="button-row">
           <button class="action-btn" onclick="handlePercentDAC()">Calculate</button>
-          <button class="clear-btn" onclick="clearPercentDAC()">Clear</button>
+          <button class="clear-btn" onclick="clearCalculator(['dbFromDAC'], 'dacResult')">Clear</button>
         </div>
         <div id="dacResult" class="result"></div>
 
@@ -90,7 +90,7 @@
 
         <div class="button-row">
           <button class="action-btn" onclick="handleNearField()">Calculate</button>
-          <button class="clear-btn" onclick="clearNearField()">Clear</button>
+          <button class="clear-btn" onclick="clearCalculator(['diameter','frequency','velocity','wedgeThickness'], 'nearFieldResult')">Clear</button>
         </div>
         <div id="nearFieldResult" class="result"></div>
 
@@ -120,7 +120,7 @@
 
         <div class="button-row">
           <button class="action-btn" onclick="handleTrajectory()">Calculate</button>
-          <button class="clear-btn" onclick="clearTrajectory()">Clear</button>
+          <button class="clear-btn" onclick="clearCalculator(['trajAngle','trajDepth','trajThickness','trajExitPoint'], 'trajectoryResult')">Clear</button>
         </div>
         <div id="trajectoryResult" class="result"></div>
 
@@ -134,27 +134,39 @@
     </div>
 
     <div id="weldProgress" class="screen">
-      <h1>Weld Progress</h1>
+      <h1>Weld Scan Time</h1>
       <div class="card">
         <label for="weldDiameterProgress">Weld Diameter (in)</label>
         <input type="number" id="weldDiameterProgress" step="0.001" placeholder="Example: 50.000" />
 
-        <label for="transducerWidthProgress">Transducer Width in Scan Direction (in)</label>
+        <label for="weldWidthProgress">Weld Width (in)</label>
+        <input type="number" id="weldWidthProgress" step="0.001" placeholder="Example: 1.250" />
+
+        <label for="fullScanSpanProgress">Full Scan Span, Perpendicular (in)</label>
+        <input type="number" id="fullScanSpanProgress" step="0.001" placeholder="Example: 8.428" />
+
+        <label for="transducerWidthProgress">Angle Beam Transducer Width for Indexing (in)</label>
         <input type="number" id="transducerWidthProgress" step="0.001" placeholder="Example: 0.500" />
 
-        <label for="scannedLengthProgress">Completed Scan Length (in)</label>
-        <input type="number" id="scannedLengthProgress" step="0.001" placeholder="Example: 30.000" />
+        <label for="straightBeamWidthProgress">Straight Beam Transducer Width for Indexing (optional, in)</label>
+        <input type="number" id="straightBeamWidthProgress" step="0.001" placeholder="Leave blank to skip straight beam" />
+
+        <label for="scanSpeedProgress">Scan Speed (in/s)</label>
+        <input type="number" id="scanSpeedProgress" step="0.001" placeholder="Example: 6.000" />
+
+        <label for="percentCompletedProgress">Percent Completed (optional)</label>
+        <input type="number" id="percentCompletedProgress" step="0.1" min="0" max="100" placeholder="Blank = 0" />
 
         <div class="button-row">
           <button class="action-btn" onclick="handleWeldProgress()">Calculate</button>
-          <button class="clear-btn" onclick="clearWeldProgress()">Clear</button>
+          <button class="clear-btn" onclick="clearCalculator(['weldDiameterProgress','weldWidthProgress','fullScanSpanProgress','transducerWidthProgress','straightBeamWidthProgress','scanSpeedProgress','percentCompletedProgress'], 'weldProgressResult')">Clear</button>
         </div>
         <div id="weldProgressResult" class="result"></div>
 
         <div class="note">
-          Assumes circumferential weld travel at a maximum of 6 in/s. The tool also reports the
-          maximum indexed advance per pass using 50% overlap of the entered transducer width.
-          Time values are ideal travel times and do not include setup, coupling, or repositioning.
+          Perpendicular scan time uses full scan span × indexed positions around weld circumference.
+          Parallel angle beam time uses weld width + 1.0 in HAZ, indexed at 50% overlap, in two opposing circumferential directions.
+          Straight beam uses the same perpendicular full scan span logic and is skipped if its width is left blank.
         </div>
 
         <button class="back-btn" onclick="showScreen('home')">Back to Home</button>
@@ -168,7 +180,7 @@
     <button id="nav-dac" class="nav-btn" onclick="showScreen('dac')">% DAC</button>
     <button id="nav-nearfield" class="nav-btn" onclick="showScreen('nearfield')">Near Field</button>
     <button id="nav-trajectory" class="nav-btn" onclick="showScreen('trajectory')">Trajectory</button>
-    <button id="nav-weldProgress" class="nav-btn" onclick="showScreen('weldProgress')">Progress</button>
+    <button id="nav-weldProgress" class="nav-btn" onclick="showScreen('weldProgress')">Weld Time</button>
   </div>
 
   <script src="app.js"></script>
