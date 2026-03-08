@@ -12,6 +12,7 @@
     <div id="home" class="screen active">
       <h1>UT Field Tools</h1>
       <div class="subtitle">Inspector-focused ultrasonic field calculators</div>
+      <div class="version-badge">Version v1.08</div>
 
       <div class="card">
         <h2>Calculators</h2>
@@ -20,7 +21,7 @@
           <button class="tool-button" onclick="showScreen('dac')">% of DAC</button>
           <button class="tool-button" onclick="showScreen('nearfield')">Near Field</button>
           <button class="tool-button" onclick="showScreen('trajectory')">Trajectory</button>
-          <button class="tool-button" onclick="showScreen('weldProgress')">Weld Scan Time</button>
+          <button class="tool-button" onclick="showScreen('weldProgress')">Weld Progress</button>
         </div>
       </div>
     </div>
@@ -39,7 +40,7 @@
 
         <div class="button-row">
           <button class="action-btn" onclick="handleScanDistance()">Calculate</button>
-          <button class="clear-btn" onclick="clearCalculator(['thickness','weldWidth','angle'], 'scanResult')">Clear</button>
+          <button class="clear-btn" onclick="clearCalculator('scan')">Clear</button>
         </div>
         <div id="scanResult" class="result"></div>
 
@@ -60,7 +61,7 @@
 
         <div class="button-row">
           <button class="action-btn" onclick="handlePercentDAC()">Calculate</button>
-          <button class="clear-btn" onclick="clearCalculator(['dbFromDAC'], 'dacResult')">Clear</button>
+          <button class="clear-btn" onclick="clearCalculator('dac')">Clear</button>
         </div>
         <div id="dacResult" class="result"></div>
 
@@ -90,7 +91,7 @@
 
         <div class="button-row">
           <button class="action-btn" onclick="handleNearField()">Calculate</button>
-          <button class="clear-btn" onclick="clearCalculator(['diameter','frequency','velocity','wedgeThickness'], 'nearFieldResult')">Clear</button>
+          <button class="clear-btn" onclick="clearCalculator('nearfield')">Clear</button>
         </div>
         <div id="nearFieldResult" class="result"></div>
 
@@ -120,7 +121,7 @@
 
         <div class="button-row">
           <button class="action-btn" onclick="handleTrajectory()">Calculate</button>
-          <button class="clear-btn" onclick="clearCalculator(['trajAngle','trajDepth','trajThickness','trajExitPoint'], 'trajectoryResult')">Clear</button>
+          <button class="clear-btn" onclick="clearCalculator('trajectory')">Clear</button>
         </div>
         <div id="trajectoryResult" class="result"></div>
 
@@ -134,39 +135,40 @@
     </div>
 
     <div id="weldProgress" class="screen">
-      <h1>Weld Scan Time</h1>
+      <h1>Weld Progress</h1>
       <div class="card">
-        <label for="weldDiameterProgress">Weld Diameter (in)</label>
-        <input type="number" id="weldDiameterProgress" step="0.001" placeholder="Example: 50.000" />
+        <label for="weldDiameterCalc">Weld Diameter (in)</label>
+        <input type="number" id="weldDiameterCalc" step="0.001" placeholder="Example: 50.000" />
 
-        <label for="weldWidthProgress">Weld Width (in)</label>
-        <input type="number" id="weldWidthProgress" step="0.001" placeholder="Example: 1.250" />
+        <label for="weldWidthCalc">Weld Width (in)</label>
+        <input type="number" id="weldWidthCalc" step="0.001" placeholder="Example: 1.000" />
 
-        <label for="fullScanSpanProgress">Full Scan Span, Perpendicular (in)</label>
-        <input type="number" id="fullScanSpanProgress" step="0.001" placeholder="Example: 8.428" />
+        <label for="fullScanSpanCalc">Full Scan Span (in)</label>
+        <input type="number" id="fullScanSpanCalc" step="0.001" placeholder="From scan distance calculator" />
 
-        <label for="transducerWidthProgress">Angle Beam Transducer Width for Indexing (in)</label>
-        <input type="number" id="transducerWidthProgress" step="0.001" placeholder="Example: 0.500" />
+        <label for="angleBeamWidthCalc">Angle Beam Transducer Width for Index (in)</label>
+        <input type="number" id="angleBeamWidthCalc" step="0.001" placeholder="Example: 0.500" />
 
-        <label for="straightBeamWidthProgress">Straight Beam Transducer Width for Indexing (optional, in)</label>
-        <input type="number" id="straightBeamWidthProgress" step="0.001" placeholder="Leave blank to skip straight beam" />
+        <label for="straightBeamWidthCalc">Straight Beam Transducer Width for Index (in, optional)</label>
+        <input type="number" id="straightBeamWidthCalc" step="0.001" placeholder="Leave blank to exclude straight beam" />
 
-        <label for="scanSpeedProgress">Scan Speed (in/s)</label>
-        <input type="number" id="scanSpeedProgress" step="0.001" placeholder="Example: 6.000" />
+        <label for="scanSpeedCalc">Scan Speed (in/s)</label>
+        <input type="number" id="scanSpeedCalc" step="0.001" placeholder="Example: 6.000" />
 
-        <label for="percentCompletedProgress">Percent Completed (optional)</label>
-        <input type="number" id="percentCompletedProgress" step="0.1" min="0" max="100" placeholder="Blank = 0" />
+        <label for="completedWeldDistanceCalc">Completed Linear Weld Distance (in)</label>
+        <input type="number" id="completedWeldDistanceCalc" step="0.001" placeholder="Example: 30.000" />
 
         <div class="button-row">
           <button class="action-btn" onclick="handleWeldProgress()">Calculate</button>
-          <button class="clear-btn" onclick="clearCalculator(['weldDiameterProgress','weldWidthProgress','fullScanSpanProgress','transducerWidthProgress','straightBeamWidthProgress','scanSpeedProgress','percentCompletedProgress'], 'weldProgressResult')">Clear</button>
+          <button class="clear-btn" onclick="clearCalculator('weldProgress')">Clear</button>
         </div>
         <div id="weldProgressResult" class="result"></div>
 
         <div class="note">
-          Perpendicular scan time uses full scan span × indexed positions around weld circumference.
-          Parallel angle beam time uses weld width + 1.0 in HAZ, indexed at 50% overlap, in two opposing circumferential directions.
-          Straight beam uses the same perpendicular full scan span logic and is skipped if its width is left blank.
+          Uses 50% overlap for indexing. Angle beam perpendicular scan uses the full scan span and is indexed around the weld circumference.
+          Straight beam, when included, uses weld width + 1.0 in HAZ as the perpendicular scan distance and is also indexed around the circumference.
+          Parallel angle beam uses the weld width + 1.0 in HAZ in two opposing directions around the circumference.
+          Remaining percentage is based on weld circumference minus completed linear weld distance entered.
         </div>
 
         <button class="back-btn" onclick="showScreen('home')">Back to Home</button>
@@ -180,7 +182,7 @@
     <button id="nav-dac" class="nav-btn" onclick="showScreen('dac')">% DAC</button>
     <button id="nav-nearfield" class="nav-btn" onclick="showScreen('nearfield')">Near Field</button>
     <button id="nav-trajectory" class="nav-btn" onclick="showScreen('trajectory')">Trajectory</button>
-    <button id="nav-weldProgress" class="nav-btn" onclick="showScreen('weldProgress')">Weld Time</button>
+    <button id="nav-weldProgress" class="nav-btn" onclick="showScreen('weldProgress')">Progress</button>
   </div>
 
   <script src="app.js"></script>
