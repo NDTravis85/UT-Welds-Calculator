@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>UT Field Tools</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+
+    <div id="home" class="screen active">
+      <h1>UT Field Tools</h1>
+      <div class="subtitle">Inspector-focused ultrasonic field calculators</div>
+
+      <div class="card">
+        <h2>Calculators</h2>
+        <div class="tool-grid">
+          <button class="tool-button" onclick="showScreen('scan')">Scan Distance</button>
+          <button class="tool-button" onclick="showScreen('dac')">% of DAC</button>
+          <button class="tool-button" onclick="showScreen('nearfield')">Near Field</button>
+          <button class="tool-button" onclick="showScreen('trajectory')">Trajectory</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="scan" class="screen">
+      <h1>Scan Distance</h1>
+      <div class="card">
+        <label for="thickness">Thickness (in)</label>
+        <input type="number" id="thickness" step="0.001" placeholder="Example: 2.000" />
+
+        <label for="weldWidth">Weld Width (in)</label>
+        <input type="number" id="weldWidth" step="0.001" placeholder="Example: 1.000" />
+
+        <label for="angle">Refracted Angle (deg)</label>
+        <input type="number" id="angle" step="0.1" placeholder="Example: 60" />
+
+        <button class="action-btn" onclick="handleScanDistance()">Calculate</button>
+        <div id="scanResult" class="result"></div>
+
+        <div class="note">
+          Automatically adds 0.5 in HAZ to each side of the weld and returns the minimum
+          scan distance from weld centerline required for full opposite-side HAZ coverage.
+        </div>
+
+        <button class="back-btn" onclick="showScreen('home')">Back to Home</button>
+      </div>
+    </div>
+
+    <div id="dac" class="screen">
+      <h1>% of DAC</h1>
+      <div class="card">
+        <label for="dbFromDAC">dB from DAC</label>
+        <input type="number" id="dbFromDAC" step="0.1" placeholder="Example: +6 or -6" />
+
+        <button class="action-btn" onclick="handlePercentDAC()">Calculate</button>
+        <div id="dacResult" class="result"></div>
+
+        <div class="note">
+          Enter the value exactly as shown on the equipment. A positive number entered on the
+          instrument is treated as a negative exponent in the %DAC formula.
+        </div>
+
+        <button class="back-btn" onclick="showScreen('home')">Back to Home</button>
+      </div>
+    </div>
+
+    <div id="nearfield" class="screen">
+      <h1>Near Field</h1>
+      <div class="card">
+        <label for="diameter">Transducer Diameter (in)</label>
+        <input type="number" id="diameter" step="0.001" placeholder="Example: 0.500" />
+
+        <label for="frequency">Frequency (MHz)</label>
+        <input type="number" id="frequency" step="0.01" placeholder="Example: 2.25" />
+
+        <label for="velocity">Velocity (in/µs)</label>
+        <input type="number" id="velocity" step="0.001" placeholder="Example: 0.128" />
+
+        <label for="wedgeThickness">Wedge Thickness (in)</label>
+        <input type="number" id="wedgeThickness" step="0.001" placeholder="Example: 0.750" />
+
+        <button class="action-btn" onclick="handleNearField()">Calculate</button>
+        <div id="nearFieldResult" class="result"></div>
+
+        <div class="note">
+          Uses the flat circular element approximation:<br>
+          Near Field = (D² × f) / (4V)
+        </div>
+
+        <button class="back-btn" onclick="showScreen('home')">Back to Home</button>
+      </div>
+    </div>
+
+    <div id="trajectory" class="screen">
+      <h1>Trajectory</h1>
+      <div class="card">
+        <label for="trajAngle">Refracted Angle (deg)</label>
+        <input type="number" id="trajAngle" step="0.1" placeholder="Example: 60" />
+
+        <label for="trajDepth">Depth of Response (in)</label>
+        <input type="number" id="trajDepth" step="0.001" placeholder="Example: 1.250" />
+
+        <label for="trajThickness">Thickness (in)</label>
+        <input type="number" id="trajThickness" step="0.001" placeholder="Example: 2.000" />
+
+        <label for="trajExitPoint">Exit Point from Face of Wedge (in)</label>
+        <input type="number" id="trajExitPoint" step="0.001" placeholder="Example: 0.625" />
+
+        <button class="action-btn" onclick="handleTrajectory()">Calculate</button>
+        <div id="trajectoryResult" class="result"></div>
+
+        <div class="note">
+          Assumes straight planar geometry. Reports estimated indication location as a surface
+          measurement from the end of the wedge, along with leg and skip information.
+        </div>
+
+        <button class="back-btn" onclick="showScreen('home')">Back to Home</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="bottom-nav">
+    <button id="nav-home" class="nav-btn active" onclick="showScreen('home')">Home</button>
+    <button id="nav-scan" class="nav-btn" onclick="showScreen('scan')">Scan</button>
+    <button id="nav-dac" class="nav-btn" onclick="showScreen('dac')">% DAC</button>
+    <button id="nav-nearfield" class="nav-btn" onclick="showScreen('nearfield')">Near Field</button>
+    <button id="nav-trajectory" class="nav-btn" onclick="showScreen('trajectory')">Trajectory</button>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
